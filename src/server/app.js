@@ -42,7 +42,14 @@ const ciks = require('./routes/ciks');
 // Note that NODE_ENV of test should only be set for the testing environment and is done in
 // package.json in the script section for the test ones.
 const isTestEnvironment = process.env.NODE_ENV === 'test';
-const testMultiplier = isTestEnvironment ? 100 : 1;
+const isRateTestEnvironment = process.env.NODE_ENV === 'ratetest';
+
+let testMultiplier = 1;
+if (isTestEnvironment) {
+	testMultiplier = 100; // avoid limits
+} else if (isRateTestEnvironment) {
+	testMultiplier = 1; // real limits so tests work
+}
 
 // Limit the rate of overall requests to OED
 // TODO Verify that user see the message returned, see https://express-rate-limit.mintlify.app/reference/configuration#message
@@ -116,6 +123,15 @@ const exportRawLimiter = rateLimit({
 // Apply the raw export limit
 app.use('/api/readings/line/raw/meters', exportRawLimiter);
 
+// Limit the number of login attempts to 1 per 4 seconds
+const loginLimiter = rateLimit({
+	windowMs: 4 * 1000, // 4 seconds
+	limit: 1, // 1 requests
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+//Apply the login limit
+app.use('/api/login', loginLimiter);
 
 // If other logging is turned off, there's no reason to log HTTP requests either.
 // TODO: Potentially modify the Morgan logger to use the log API, thus unifying all our logging.
@@ -131,7 +147,6 @@ app.use('/api/users', users);
 app.use('/api/meters', meters);
 app.use('/api/readings', readings);
 app.use('/api/preferences', preferences);
-app.use('/api/login', login);
 app.use('/api/groups', groups);
 app.use('/api/verification', verification);
 app.use('/api/version', version);
