@@ -81,4 +81,4 @@ jobs:
           npm run check:typescript
           npm run check:types
           npm run check:lint
-          npm run testAll
+          npm run noLimitTest

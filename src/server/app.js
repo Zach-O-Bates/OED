@@ -126,7 +126,7 @@ app.use('/api/readings/line/raw/meters', exportRawLimiter);
 // Limit the number of login attempts to 1 per 4 seconds
 const loginLimiter = rateLimit({
 	windowMs: 4 * 1000, // 4 seconds
-	limit: 1, // 1 requests
+	limit: isTestEnviroment ? Infinity : 1, // 1 requests
 	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
@@ -143,6 +143,7 @@ app.use(favicon(path.join(__dirname, '..', 'client', 'public', 'favicon.ico')));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
 
+app.use('/api/login', login);
 app.use('/api/users', users);
 app.use('/api/meters', meters);
 app.use('/api/readings', readings);

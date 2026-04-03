@@ -11,29 +11,27 @@ npm run testsome src/server/test/routes/loginRateTest.js */
 
 const { chai, mocha, expect, app } = require('../common');
 
+
 mocha.describe('Login Rate Limit', () => {
-
 	mocha.it('Should block repeated login attempts with 429', async () => {
+            const first = await chai.request(app)
+                .post('/api/login')
+                .send({
+                    username: 'invalidUser',
+                    password: 'invalidPassword'
+                });
+            expect(first).to.have.status(401);
+    
+            const second = await chai.request(app)
+                .post('/api/login')
+                .send({
+                    username: 'invalidUser',
+                    password: 'invalidPassword'
+                });
+    
+            expect(second).to.have.status(429);
+            expect(second.text).to.include('Too many requests');
 
-		// First request 
-		const first = await chai.request(app)
-			.post('/api/login')
-			.send({
-				username: 'invalidUser',
-				password: 'invalidPassword'
-			});
-		expect(first).to.have.status(401);
-
-		// Second request 
-		const second = await chai.request(app)
-			.post('/api/login')
-			.send({
-				username: 'invalidUser',
-				password: 'invalidPassword'
-			});
-
-		expect(second).to.have.status(429);
-		expect(second.text).to.include('Too many requests');
-	});
+    });
 
 });
