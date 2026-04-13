@@ -50,6 +50,9 @@ router.post('/', credentialsRequestValidationMiddleware, async (req, res) => {
 				// User did not exist so return false.
 				isValid = false;
 			} else {
+				if (req.body.password.length > 72) {
+					res.status(400).json({ message: 'Password too long' });
+				}
 				isValid = await bcrypt.compare(req.body.password, user.passwordHash);
 			}
 			if (isValid) {

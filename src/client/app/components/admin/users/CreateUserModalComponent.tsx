@@ -54,7 +54,7 @@ export default function CreateUserModal() {
 		setUserDetails(prevDetails => ({
 			...prevDetails,
 			passwordMatch: (userDetails.password === userDetails.confirmPassword),
-			passwordLength: userDetails.password.length > 7
+			passwordLength: userDetails.password.length > 7 // look here 
 		}));
 	}, [userDetails.password, userDetails.confirmPassword]);
 

@@ -12,6 +12,7 @@ const { getConnection } = require('../db');
 const jwt = require('jsonwebtoken');
 const secretToken = require('../config').secretToken;
 const { STRING_GENERAL_MAX_LENGTH, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, TOKEN_MAX_LENGTH, USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH, NUMERIC_ID_MAX_LENGTH } = require('../util/validationConstants');
+const zxcvbn = require('zxcvbn');
 
 const router = express.Router();
 
@@ -126,6 +127,10 @@ router.post('/create', adminAuthMiddleware('create a user.'), async (req, res) =
 			if (currentUser !== null) {
 				res.status(400).send({ message: `user ${username} already exists so cannot create` });
 			} else {
+				const result = zxcvbn(password);
+				if (result.score < 3) {
+					res.status(400).send({ message: 'Password is too weak' });
+				}
 				const hashedPassword = await bcrypt.hash(password, 10);
 				const user = new User(undefined, username, hashedPassword, role, note);
 				await user.insert(conn);
@@ -209,6 +214,11 @@ router.post('/edit', adminAuthMiddleware('edit a user'), async (req, res) => {
 
 			// update the user's password if needed
 			if (user.password) {
+				const result = zxcvbn(user.password);
+				if (result.score < 3) {
+					return res.status(400).json({ message: 'Password is too weak' });
+				}
+			
 				const hashedPassword = await bcrypt.hash(user.password, 10);
 				userUpdates.push(
 					User.updateUserPassword(user.id, hashedPassword, conn)
